@@ -62,11 +62,54 @@
   .del{background:none;border:none;color:#d1d5db;font-size:20px;cursor:pointer;padding:4px}
   .del:hover{color:var(--red)}
   .del.armed{color:#fff;background:var(--red);border-radius:10px;font-size:13px;font-weight:700;padding:6px 10px}
-  .picker{position:absolute;z-index:50;background:#fff;border-radius:18px;padding:10px;display:flex;gap:8px;
+  .picker{position:absolute;z-index:50;background:#fff;border-radius:18px;padding:14px;width:min(330px,94vw);
     box-shadow:0 12px 30px #0003;animation:pop .15s}
-  .picker .dot{cursor:pointer;width:44px;height:44px}
-  .picker .dot:hover{transform:scale(1.12)}
-  .picker .trash{background:#f3f4f6;color:#6b7280;font-size:18px}
+  .picker .colors{display:flex;gap:10px;justify-content:center;margin-bottom:12px}
+  .picker .dot{cursor:pointer;width:46px;height:46px;transition:.15s;opacity:.45}
+  .picker .dot:hover{transform:scale(1.1);opacity:.8}
+  .picker .dot.sel{opacity:1;transform:scale(1.12);outline:3px solid #1e1b4b;outline-offset:3px}
+  .picker.nosel .dot{opacity:1}
+  .picker label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:8px 0 4px}
+  .picker input{width:100%;padding:10px 12px;border-radius:12px;border:2px solid #e9d5ff;font-size:15px;outline:none;font-family:inherit}
+  .picker input:focus{border-color:#a855f7}
+  .picker .acts{display:flex;gap:8px;margin-top:12px}
+  .picker .acts .btn{flex:1;padding:10px}
+  .picker .acts .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .picker .acts .trash{flex:none;background:#fee2e2;color:var(--red);box-shadow:none}
+  .picker .hint{font-size:12px;color:var(--muted);text-align:center}
+  @keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+  .dot.noted{position:relative}
+  .dot.noted::after{content:"";position:absolute;top:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid currentColor;color:#1e1b4b}
+  /* podrobný prehľad */
+  .btn.big{display:block;margin:0 auto 14px;padding:14px 28px;font-size:16px}
+  .overlay{position:fixed;inset:0;z-index:70;background:#1e1b4b99;backdrop-filter:blur(4px);overflow:auto;padding:20px 12px}
+  .overlay[hidden]{display:none}
+  .panel{max-width:860px;margin:0 auto;background:#fff;border-radius:22px;box-shadow:0 20px 50px #0005;overflow:hidden;animation:pop .2s}
+  .panel-head{padding:18px 20px;color:#fff;background:linear-gradient(135deg,#8b5cf6,#ec4899,#fb923c);display:flex;align-items:center;gap:12px}
+  .panel-head h2{margin:0;flex:1;font-size:22px}
+  .panel-head button{background:#ffffff33;border:none;color:#fff;font-size:20px;width:40px;height:40px;border-radius:50%;cursor:pointer}
+  .panel-bar{display:flex;gap:10px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid #f3e8ff;align-items:center}
+  .tabs{display:flex;background:#f3e8ff;border-radius:12px;padding:4px}
+  .tabs button{border:none;background:none;padding:8px 14px;border-radius:9px;font-weight:700;cursor:pointer;color:#6b21a8;font-size:14px}
+  .tabs button.on{background:#fff;box-shadow:0 2px 6px #0001}
+  .panel-bar input{flex:1;min-width:160px;padding:9px 12px;border-radius:12px;border:2px solid #e9d5ff;font-size:14px;outline:none}
+  .filters{display:flex;gap:6px}
+  .filters .dot{width:34px;height:34px;font-size:11px;cursor:pointer;opacity:.35}
+  .filters .dot.on{opacity:1}
+  .panel-body{padding:16px 20px 24px;display:flex;flex-direction:column;gap:14px}
+  .block{border:2px solid #f3e8ff;border-radius:16px;overflow:hidden}
+  .block-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#faf5ff;font-weight:800}
+  .block-head .cnt{margin-left:auto;font-size:13px;color:#7c3aed;background:#ede9fe;padding:3px 10px;border-radius:99px}
+  .block-head small{font-weight:600;color:var(--muted)}
+  .ent{display:flex;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid #f5f3ff;cursor:pointer}
+  .ent:hover{background:#fdfaff}
+  .ent .dot{width:30px;height:30px;font-size:10px}
+  .ent .date{width:92px;flex:none;font-variant-numeric:tabular-nums;color:#4b5563;font-size:14px}
+  .ent .what{flex:1}
+  .ent .what i{color:#9ca3af}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid #f5f3ff}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:99px;background:#f9fafb;font-size:14px;font-weight:600}
+  .chip .dot{width:24px;height:24px;font-size:9px}
   .empty{text-align:center;color:var(--muted);padding:30px 10px}
   .tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   @media (max-width:600px){
@@ -112,6 +155,8 @@
     <div class="list" id="list"></div>
   </div>
 
+  <button class="btn big" id="detailBtn">📋 Podrobný prehľad</button>
+
   <div class="tools">
     <button class="btn small" id="exportBtn">⬇ Uložiť zálohu</button>
     <button class="btn small" id="importBtn">⬆ Načítať zálohu</button>
@@ -120,6 +165,19 @@
   </div>
   <div class="dup" id="dupBanner" hidden>Appka je už otvorená v inej karte. Túto kartu môžeš zavrieť 🙂</div>
 </div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="panel">
+    <div class="panel-head"><h2>📋 Podrobný prehľad</h2><button id="closeDetail" title="Zavrieť">✕</button></div>
+    <div class="panel-bar">
+      <div class="tabs"><button data-view="people" class="on">Podľa ľudí</button><button data-view="events">Podľa podujatí</button></div>
+      <div class="filters" id="filters"></div>
+      <input id="search" placeholder="🔍 Hľadať meno alebo podujatie…" autocomplete="off">
+    </div>
+    <div class="panel-body" id="detailBody"></div>
+  </div>
+</div>
+<datalist id="eventNames"></datalist>
 
 <script>
 /* ============================================================
@@ -196,22 +254,40 @@ function connect(){
 /* ---------- pomocné ---------- */
 let idCounter = 0;
 function newId(){ return Date.now().toString(36).padStart(9,'0') + (idCounter++ % 1296).toString(36).padStart(2,'0') + Math.random().toString(36).slice(2,6); }
-function today(){ return new Date().toLocaleDateString('sk-SK'); }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function todayISO(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+// dátum vždy ako RRRR-MM-DD (staré záznamy mali "11. 11. 2026")
+function toISO(d){
+  if(!d) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  const m = String(d).match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/);
+  return m ? `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}` : '';
+}
+function fmtDate(d){
+  const iso = toISO(d);
+  if(!iso) return d || '';
+  const [y,m,dd] = iso.split('-');
+  return `${+dd}. ${+m}. ${y}`;
+}
 
 function getPeople(){
   return Object.entries(tree.people || {}).filter(([,p]) => p && p.name).map(([id,p]) => ({
     id, name: p.name,
     entries: Object.entries(p.entries || {}).filter(([,e]) => e && TYPES[e.t])
-      .sort((a,b) => a[0] < b[0] ? -1 : 1).map(([eid,e]) => ({id:eid, t:e.t, d:e.d || ''}))
+      .sort((a,b) => a[0] < b[0] ? -1 : 1).map(([eid,e]) => ({id:eid, t:e.t, d:toISO(e.d), n:(e.n || '').trim()}))
   })).sort((a,b) => b.entries.length - a.entries.length || a.name.localeCompare(b.name,'sk'));
 }
+
+function entryTitle(e){ return [TYPES[e.t].name, e.n, fmtDate(e.d)].filter(Boolean).join(' – '); }
 
 /* ---------- vykreslenie ---------- */
 function render(){
   const list = document.getElementById('list');
   const people = getPeople();
-  if(picker && !document.body.contains(picker.anchor)) closePicker();
+  // ponuka názvov podujatí pri písaní
+  const names = [...new Set(people.flatMap(p => p.entries.map(e => e.n)).filter(Boolean))].sort((a,b) => a.localeCompare(b,'sk'));
+  document.getElementById('eventNames').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+  if(!document.getElementById('overlay').hidden) renderDetail();
   if(!people.length){ list.innerHTML = '<div class="empty">Zatiaľ tu nikto nie je. Pridaj prvé meno ☝️</div>'; return; }
   const medals = ['🥇','🥈','🥉'];
   list.innerHTML = people.map((p,i) => {
@@ -220,7 +296,7 @@ function render(){
     const ranked = p.entries.length > 0 && i < 3;
     const meta = Object.keys(TYPES).filter(k => counts[k]).map(k => `<span>${TYPES[k].label}: <b>${counts[k]}</b></span>`).join('');
     const dots = p.entries.map(e =>
-      `<span class="dot ${e.t}" data-id="${p.id}" data-eid="${e.id}" title="${TYPES[e.t].name}${e.d ? ' – ' + esc(e.d) : ''}">${TYPES[e.t].label}</span>`).join('');
+      `<span class="dot ${e.t}${e.n ? ' noted' : ''}" data-id="${p.id}" data-eid="${e.id}" title="${esc(entryTitle(e))}">${TYPES[e.t].label}</span>`).join('');
     return `<div class="row ${ranked?'ranked':''}">
       <div class="who">
         <div class="name">${ranked?`<span class="rank">${medals[i]}</span>`:''}${esc(p.name)}</div>
@@ -244,41 +320,158 @@ function addPerson(){
 document.getElementById('addBtn').addEventListener('click', e => { e.stopPropagation(); addPerson(); });
 document.getElementById('nameInput').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); addPerson(); } });
 
-/* ---------- výber farby ---------- */
+/* ---------- okienko účasti: farba + za čo + dátum ---------- */
 let picker = null;
 function closePicker(){ if(picker){ picker.remove(); picker = null; } }
 
 function openPicker(el, pid, eid){
   closePicker();
+  const p = tree.people?.[pid]; if(!p) return;
+  const old = eid ? (p.entries?.[eid] || {}) : {};
+  let sel = eid ? old.t : null;
+
   picker = document.createElement('div');
-  picker.className = 'picker';
-  picker.anchor = el;
-  picker.innerHTML = Object.keys(TYPES).map(k => `<span class="dot ${k}" data-t="${k}" title="${TYPES[k].name}">${TYPES[k].label}</span>`).join('')
-    + (eid ? '<span class="dot trash" data-t="X" title="Zmazať">🗑</span>' : '');
-  document.body.appendChild(picker);
+  picker.className = 'picker' + (sel ? '' : ' nosel');
+  picker.innerHTML = `
+    <div class="colors">${Object.keys(TYPES).map(k => `<span class="dot ${k}${k===sel?' sel':''}" data-t="${k}" title="${TYPES[k].name}">${TYPES[k].label}</span>`).join('')}</div>
+    <div class="hint" data-hint>${sel ? esc(TYPES[sel].name) : 'Vyber typ účasti'} · ${esc(p.name)}</div>
+    <label>Za čo / podujatie <span style="font-weight:400">(nepovinné)</span></label>
+    <input data-n list="eventNames" placeholder="napr. Letný tábor Strigáč" value="${esc(old.n || '')}" autocomplete="off">
+    <label>Dátum</label>
+    <input data-d type="date" value="${toISO(old.d) || todayISO()}">
+    <div class="acts">
+      ${eid ? '<button class="btn trash" data-x title="Zmazať túto účasť">🗑</button>' : ''}
+      <button class="btn" data-save ${sel ? '' : 'disabled'}>${eid ? 'Uložiť zmeny' : 'Pridať'}</button>
+    </div>`;
+
+  // umiestnenie pod krúžok (aj v podrobnom prehľade)
+  const box = el.closest('.overlay') || document.body;
+  box.appendChild(picker);
+  picker.style.zIndex = 80;
   const r = el.getBoundingClientRect();
-  let left = r.left + window.scrollX + r.width/2 - picker.offsetWidth/2;
-  left = Math.max(8, Math.min(left, window.scrollX + document.documentElement.clientWidth - picker.offsetWidth - 8));
+  const inBody = box === document.body;
+  const br = inBody ? {left:-window.scrollX, top:-window.scrollY} : box.getBoundingClientRect();
+  const sx = inBody ? 0 : box.scrollLeft, sy = inBody ? 0 : box.scrollTop;
+  const vw = document.documentElement.clientWidth;
+  let left = r.left - br.left + sx + r.width/2 - picker.offsetWidth/2;
+  const minL = 8 - (inBody ? br.left : 0), maxL = vw - picker.offsetWidth - 8 - (inBody ? br.left : 0);
+  left = Math.max(minL, Math.min(left, maxL));
   picker.style.left = left + 'px';
-  picker.style.top = (r.bottom + window.scrollY + 8) + 'px';
-  picker.addEventListener('click', ev => {
-    const t = ev.target.closest('[data-t]')?.dataset.t;
-    if(!t) return;
+  picker.style.top = (r.bottom - br.top + sy + 8) + 'px';
+
+  const nInp = picker.querySelector('[data-n]'), dInp = picker.querySelector('[data-d]'), saveBtn = picker.querySelector('[data-save]');
+  const save = () => {
+    if(!sel) return;
+    const val = {t: sel, d: dInp.value || todayISO()};
+    const n = nInp.value.trim(); if(n) val.n = n;
     closePicker();
-    if(t === 'X') setPath(`people/${pid}/entries/${eid}`, null);
-    else if(!eid) setPath(`people/${pid}/entries/${newId()}`, {t, d: today()});
-    else setPath(`people/${pid}/entries/${eid}/t`, t);
+    setPath(`people/${pid}/entries/${eid || newId()}`, val);
+  };
+  picker.addEventListener('click', ev => {
+    const dot = ev.target.closest('[data-t]');
+    if(dot){
+      sel = dot.dataset.t;
+      picker.classList.remove('nosel');
+      picker.querySelectorAll('.colors .dot').forEach(d => d.classList.toggle('sel', d === dot));
+      picker.querySelector('[data-hint]').textContent = `${TYPES[sel].name} · ${p.name}`;
+      saveBtn.disabled = false;
+      return;
+    }
+    if(ev.target.closest('[data-save]')) return save();
+    const x = ev.target.closest('[data-x]');
+    if(x){
+      if(x.dataset.armed){ closePicker(); setPath(`people/${pid}/entries/${eid}`, null); }
+      else { x.dataset.armed = '1'; x.textContent = 'Naozaj zmazať?'; }
+    }
   });
+  picker.addEventListener('keydown', ev => { if(ev.key === 'Enter'){ ev.preventDefault(); save(); } if(ev.key === 'Escape'){ ev.stopPropagation(); closePicker(); } });
 }
 
-function disarm(){ document.querySelectorAll('[data-armed]').forEach(b => { delete b.dataset.armed; b.textContent = '✕'; b.classList.remove('armed'); }); }
+/* ---------- podrobný prehľad ---------- */
+let view = 'people';
+const typeOn = {T:true, A:true, P:true, R:true};
+const ov = document.getElementById('overlay');
+
+document.getElementById('filters').innerHTML = Object.keys(TYPES).map(k =>
+  `<span class="dot ${k} on" data-f="${k}" title="Zobraziť/skryť: ${TYPES[k].name}">${TYPES[k].label}</span>`).join('');
+
+function renderDetail(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const people = getPeople();
+  const body = document.getElementById('detailBody');
+  const byDate = (a,b) => (b.d || '').localeCompare(a.d || '') || (b.id < a.id ? -1 : 1);
+  const entRow = (e, p, showName) => `
+    <div class="ent" data-id="${p.id}" data-eid="${e.id}" title="Klikni pre úpravu">
+      <span class="dot ${e.t}">${TYPES[e.t].label}</span>
+      <span class="date">${esc(fmtDate(e.d)) || '—'}</span>
+      <span class="what">${showName ? `<b>${esc(p.name)}</b> · ` : ''}${e.n ? esc(e.n) : `<i>${esc(TYPES[e.t].name)} – bez popisu</i>`}</span>
+    </div>`;
+
+  let html = '';
+  if(view === 'people'){
+    html = people.map(p => {
+      const nameHit = p.name.toLowerCase().includes(q);
+      const ents = p.entries.filter(e => typeOn[e.t] && (!q || nameHit || e.n.toLowerCase().includes(q))).sort(byDate);
+      if(q && !nameHit && !ents.length) return '';
+      return `<div class="block">
+        <div class="block-head">${esc(p.name)} <span class="cnt">${ents.length} ${ents.length === 1 ? 'účasť' : ents.length >= 2 && ents.length <= 4 ? 'účasti' : 'účastí'}</span></div>
+        ${ents.length ? ents.map(e => entRow(e, p, false)).join('') : '<div class="ent" style="cursor:default"><i style="color:#9ca3af">bez účasti</i></div>'}
+      </div>`;
+    }).join('');
+  } else {
+    const groups = new Map();
+    people.forEach(p => p.entries.forEach(e => {
+      if(!typeOn[e.t]) return;
+      const key = e.n || '';
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push({e, p});
+    }));
+    const list = [...groups.entries()]
+      .filter(([k, arr]) => !q || k.toLowerCase().includes(q) || arr.some(x => x.p.name.toLowerCase().includes(q)))
+      .map(([k, arr]) => ({k, arr, last: arr.reduce((m, x) => (x.e.d || '') > m ? x.e.d : m, '')}))
+      .sort((a,b) => (a.k === '') - (b.k === '') || b.last.localeCompare(a.last));
+    html = list.map(g => {
+      const dates = [...new Set(g.arr.map(x => x.e.d).filter(Boolean))].sort();
+      const when = dates.length ? (dates.length === 1 ? fmtDate(dates[0]) : `${fmtDate(dates[0])} – ${fmtDate(dates[dates.length-1])}`) : '';
+      return `<div class="block">
+        <div class="block-head">${g.k ? esc(g.k) : '<i style="color:#9ca3af">Bez popisu</i>'} <small>${esc(when)}</small>
+          <span class="cnt">${g.arr.length} ${g.arr.length === 1 ? 'človek' : g.arr.length <= 4 ? 'ľudia' : 'ľudí'}</span></div>
+        ${g.arr.sort((a,b) => byDate(a.e,b.e) || a.p.name.localeCompare(b.p.name,'sk')).map(x => entRow(x.e, x.p, true)).join('')}
+      </div>`;
+    }).join('');
+  }
+  body.innerHTML = html || '<div class="empty">Nič sa nenašlo.</div>';
+}
+
+document.getElementById('detailBtn').onclick = () => { closePicker(); ov.hidden = false; document.body.style.overflow = 'hidden'; renderDetail(); };
+function closeDetail(){ closePicker(); ov.hidden = true; document.body.style.overflow = ''; }
+document.getElementById('closeDetail').onclick = closeDetail;
+document.getElementById('search').addEventListener('input', () => { closePicker(); renderDetail(); });
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  view = b.dataset.view;
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  closePicker(); renderDetail();
+});
+document.getElementById('filters').addEventListener('click', e => {
+  const f = e.target.closest('[data-f]'); if(!f) return;
+  typeOn[f.dataset.f] = !typeOn[f.dataset.f];
+  f.classList.toggle('on', typeOn[f.dataset.f]);
+  closePicker(); renderDetail();
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && !picker && !ov.hidden) closeDetail(); });
+
+/* ---------- kliknutia ---------- */
+function disarm(){ document.querySelectorAll('[data-armed]').forEach(b => { if(!b.dataset.del) return; delete b.dataset.armed; b.textContent = '✕'; b.classList.remove('armed'); }); }
 
 document.addEventListener('click', e => {
   if(picker && picker.contains(e.target)) return;
   const dot = e.target.closest('.circles .dot');
+  const ent = e.target.closest('.ent[data-eid]');
   const del = e.target.closest('[data-del]');
   if(dot){ openPicker(dot, dot.dataset.id, dot.classList.contains('plus') ? null : dot.dataset.eid); return; }
+  if(ent){ openPicker(ent.querySelector('.dot'), ent.dataset.id, ent.dataset.eid); return; }
   closePicker();
+  if(e.target === ov){ closeDetail(); return; }
   if(del){
     if(del.dataset.armed){ setPath(`people/${del.dataset.del}`, null); }
     else { disarm(); del.dataset.armed = '1'; del.textContent = 'Zmazať?'; del.classList.add('armed'); }
@@ -286,7 +479,6 @@ document.addEventListener('click', e => {
   }
   disarm();
 });
-window.addEventListener('resize', closePicker);
 
 /* ---------- záloha ---------- */
 document.getElementById('exportBtn').onclick = () => {
