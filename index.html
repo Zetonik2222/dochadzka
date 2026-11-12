@@ -48,9 +48,14 @@
   .row:nth-child(3).ranked{border-left-color:#d97706;background:linear-gradient(90deg,#ffedd5,#fff 40%)}
   @keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
   .who{width:190px;flex:none}
-  .name{font-weight:700;font-size:17px;word-break:break-word}
+  .name{font-weight:700;font-size:17px;word-break:break-word;cursor:pointer;border-radius:8px;padding:1px 4px;margin-left:-4px}
+  .name:hover{background:#f3e8ff}
+  .name .pen{font-size:12px;opacity:0;margin-left:4px;transition:.15s}
+  .name:hover .pen{opacity:.6}
+  .name-edit{width:100%;font:inherit;font-weight:700;font-size:16px;padding:4px 8px;border-radius:10px;border:2px solid #a855f7;outline:none}
   .meta{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
   .meta span b{font-weight:800}
+  .meta .mc{color:#fff;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:700}
   .rank{font-size:20px;margin-right:4px}
   .circles{display:flex;flex-wrap:wrap;gap:8px;flex:1;align-items:center}
   .circles .dot{cursor:pointer;transition:.15s}
@@ -145,7 +150,7 @@
   <div class="card">
     <div class="legend">
       <div><span class="dot T">T/S</span> tábor / strigáč</div>
-      <div><span class="dot A">A/P</span> akcia / podujatie</div>
+      <div><span class="dot A">P</span> podujatie</div>
       <div><span class="dot P">P</span> pomoc</div>
       <div><span class="dot R">+</span> plusko</div>
     </div>
@@ -189,7 +194,7 @@ const FIREBASE_URL = "https://dochadzka-dobrovolnici-default-rtdb.europe-west1.f
 
 const TYPES = {
   T:{label:'T/S', name:'tábor / strigáč'},
-  A:{label:'A/P', name:'akcia / podujatie'},
+  A:{label:'P',   name:'podujatie'},
   P:{label:'P',   name:'pomoc'},
   R:{label:'+',   name:'plusko'}
 };
@@ -288,18 +293,19 @@ function render(){
   const names = [...new Set(people.flatMap(p => p.entries.map(e => e.n)).filter(Boolean))].sort((a,b) => a.localeCompare(b,'sk'));
   document.getElementById('eventNames').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
   if(!document.getElementById('overlay').hidden) renderDetail();
+  if(renaming) return;
   if(!people.length){ list.innerHTML = '<div class="empty">Zatiaľ tu nikto nie je. Pridaj prvé meno ☝️</div>'; return; }
   const medals = ['🥇','🥈','🥉'];
   list.innerHTML = people.map((p,i) => {
     const counts = {T:0,A:0,P:0,R:0};
     p.entries.forEach(e => counts[e.t]++);
     const ranked = p.entries.length > 0 && i < 3;
-    const meta = Object.keys(TYPES).filter(k => counts[k]).map(k => `<span>${TYPES[k].label}: <b>${counts[k]}</b></span>`).join('');
+    const meta = Object.keys(TYPES).filter(k => counts[k]).map(k => `<span class="mc ${k}" title="${TYPES[k].name}">${TYPES[k].label} <b>${counts[k]}</b></span>`).join('');
     const dots = p.entries.map(e =>
       `<span class="dot ${e.t}${e.n ? ' noted' : ''}" data-id="${p.id}" data-eid="${e.id}" title="${esc(entryTitle(e))}">${TYPES[e.t].label}</span>`).join('');
     return `<div class="row ${ranked?'ranked':''}">
       <div class="who">
-        <div class="name">${ranked?`<span class="rank">${medals[i]}</span>`:''}${esc(p.name)}</div>
+        <div class="name" data-rename="${p.id}" title="Klikni pre úpravu mena">${ranked?`<span class="rank">${medals[i]}</span>`:''}${esc(p.name)}<span class="pen">✏️</span></div>
         <div class="meta">${meta || 'bez účasti'}</div>
       </div>
       <div class="circles">${dots}<span class="dot plus" data-id="${p.id}" title="Pridať účasť">+</span></div>
@@ -460,6 +466,24 @@ document.getElementById('filters').addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !picker && !ov.hidden) closeDetail(); });
 
+/* ---------- úprava mena ---------- */
+let renaming = false;
+function startRename(el){
+  const pid = el.dataset.rename, p = tree.people?.[pid]; if(!p) return;
+  renaming = true;
+  const inp = document.createElement('input');
+  inp.className = 'name-edit'; inp.value = p.name; inp.maxLength = 60;
+  el.replaceWith(inp); inp.focus(); inp.select();
+  let done = false;
+  const finish = ok => {
+    if(done) return; done = true; renaming = false;
+    const v = inp.value.trim();
+    if(ok && v && v !== p.name) setPath(`people/${pid}/name`, v); else render();
+  };
+  inp.addEventListener('keydown', ev => { if(ev.key === 'Enter') finish(true); if(ev.key === 'Escape') finish(false); });
+  inp.addEventListener('blur', () => finish(true));
+}
+
 /* ---------- kliknutia ---------- */
 function disarm(){ document.querySelectorAll('[data-armed]').forEach(b => { if(!b.dataset.del) return; delete b.dataset.armed; b.textContent = '✕'; b.classList.remove('armed'); }); }
 
@@ -469,6 +493,8 @@ document.addEventListener('click', e => {
   const ent = e.target.closest('.ent[data-eid]');
   const del = e.target.closest('[data-del]');
   if(dot){ openPicker(dot, dot.dataset.id, dot.classList.contains('plus') ? null : dot.dataset.eid); return; }
+  const rn = e.target.closest('[data-rename]');
+  if(rn){ closePicker(); disarm(); startRename(rn); return; }
   if(ent){ openPicker(ent.querySelector('.dot'), ent.dataset.id, ent.dataset.eid); return; }
   closePicker();
   if(e.target === ov){ closeDetail(); return; }
