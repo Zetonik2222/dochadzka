@@ -36,10 +36,10 @@
   .btn:hover{transform:translateY(-2px)}
   .btn.small{padding:7px 12px;font-size:13px;background:#f3f4f6;color:var(--ink);box-shadow:none}
   .legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
-  .legend div{display:flex;align-items:center;gap:8px;font-size:15px}
+  .legend div{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
   .dot{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
     color:#fff;font-weight:800;font-size:12px;flex:none;user-select:none;box-shadow:0 3px 8px #0002}
-  .T{background:var(--green)} .A{background:var(--blue)} .P{background:var(--orange)} .R{background:var(--red);font-size:20px}
+  .T{background:var(--green)} .A{background:var(--blue)} .P{background:var(--orange)} .V{background:#a855f7} .R{background:var(--red);font-size:20px}
   .list{display:flex;flex-direction:column;gap:10px}
   .row{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:16px;background:#fff;
     box-shadow:0 2px 8px #0001;border-left:6px solid #c4b5fd}
@@ -130,6 +130,18 @@
   .dup{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#1e1b4b;color:#fff;padding:12px 18px;
     border-radius:14px;box-shadow:0 8px 24px #0004;font-weight:600;font-size:14px;max-width:92vw;text-align:center;z-index:60}
   .dup[hidden],.btn[hidden]{display:none}
+  .me{margin-top:8px;background:none;border:none;color:#fff;opacity:.9;font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline dotted}
+  .namebox{z-index:90;display:flex;align-items:center;justify-content:center}
+  .namebox[hidden]{display:none}
+  .panel.small{max-width:400px;width:100%}
+  .bigin{width:100%;padding:12px 16px;border-radius:14px;border:2px solid #e9d5ff;font-size:17px;outline:none;font-family:inherit}
+  .bigin:focus{border-color:#a855f7;box-shadow:0 0 0 4px #a855f733}
+  .shake{animation:shake .35s}
+  @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .ent .by{font-size:12px;color:#9ca3af;white-space:nowrap}
+  .logrow{display:flex;gap:12px;padding:9px 14px;border-top:1px solid #f5f3ff;font-size:14px}
+  .logrow:first-child{border-top:none}
+  .logrow .when{width:118px;flex:none;color:#6b7280;font-variant-numeric:tabular-nums;font-size:13px}
 </style>
 </head>
 <body>
@@ -152,6 +164,7 @@
       <div><span class="dot T">T/S</span> tábor / strigáč</div>
       <div><span class="dot A">P</span> podujatie</div>
       <div><span class="dot P">P</span> pomoc</div>
+      <div><span class="dot V">V</span> víkendovka</div>
       <div><span class="dot R">+</span> plusko</div>
     </div>
   </div>
@@ -175,7 +188,7 @@
   <div class="panel">
     <div class="panel-head"><h2>📋 Podrobný prehľad</h2><button id="closeDetail" title="Zavrieť">✕</button></div>
     <div class="panel-bar">
-      <div class="tabs"><button data-view="people" class="on">Podľa ľudí</button><button data-view="events">Podľa podujatí</button></div>
+      <div class="tabs"><button data-view="people" class="on">Podľa ľudí</button><button data-view="events">Podľa podujatí</button><button data-view="log">História</button></div>
       <div class="filters" id="filters"></div>
       <input id="search" placeholder="🔍 Hľadať meno alebo podujatie…" autocomplete="off">
     </div>
@@ -183,6 +196,21 @@
   </div>
 </div>
 <datalist id="eventNames"></datalist>
+
+<div class="overlay namebox" id="nameModal" hidden>
+  <div class="panel small">
+    <div class="panel-head"><h2>👋 Vitaj!</h2></div>
+    <div style="padding:20px">
+      <label for="myNameInput" style="font-weight:800;font-size:17px">Vaše meno:</label>
+      <p style="margin:6px 0 12px;color:#6b7280;font-size:14px">Bude pri zmenách, ktoré urobíš, aby ostatní videli, kto čo pridal. Appka si ho zapamätá.</p>
+      <input id="myNameInput" class="bigin" placeholder="napr. Šimon" maxlength="40" autocomplete="name">
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn small" id="nameCancel" type="button">Zrušiť</button>
+        <button class="btn" id="nameOk" type="button" style="flex:1">Pokračovať</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -196,6 +224,7 @@ const TYPES = {
   T:{label:'T/S', name:'tábor / strigáč'},
   A:{label:'P',   name:'podujatie'},
   P:{label:'P',   name:'pomoc'},
+  V:{label:'V',   name:'víkendovka'},
   R:{label:'+',   name:'plusko'}
 };
 const LOCAL_KEY = 'dochadzka-dobrovolnikov-v2';
@@ -279,7 +308,7 @@ function getPeople(){
   return Object.entries(tree.people || {}).filter(([,p]) => p && p.name).map(([id,p]) => ({
     id, name: p.name,
     entries: Object.entries(p.entries || {}).filter(([,e]) => e && TYPES[e.t])
-      .sort((a,b) => a[0] < b[0] ? -1 : 1).map(([eid,e]) => ({id:eid, t:e.t, d:toISO(e.d), n:(e.n || '').trim()}))
+      .sort((a,b) => a[0] < b[0] ? -1 : 1).map(([eid,e]) => ({id:eid, t:e.t, d:toISO(e.d), n:(e.n || '').trim(), by:e.by || '', eby:e.eby || ''}))
   })).sort((a,b) => b.entries.length - a.entries.length || a.name.localeCompare(b.name,'sk'));
 }
 
@@ -297,7 +326,7 @@ function render(){
   if(!people.length){ list.innerHTML = '<div class="empty">Zatiaľ tu nikto nie je. Pridaj prvé meno ☝️</div>'; return; }
   const medals = ['🥇','🥈','🥉'];
   list.innerHTML = people.map((p,i) => {
-    const counts = {T:0,A:0,P:0,R:0};
+    const counts = {T:0,A:0,P:0,V:0,R:0};
     p.entries.forEach(e => counts[e.t]++);
     const ranked = p.entries.length > 0 && i < 3;
     const meta = Object.keys(TYPES).filter(k => counts[k]).map(k => `<span class="mc ${k}" title="${TYPES[k].name}">${TYPES[k].label} <b>${counts[k]}</b></span>`).join('');
@@ -320,7 +349,8 @@ function addPerson(){
   const inp = document.getElementById('nameInput');
   const name = inp.value.trim();
   if(!name){ inp.focus(); return; }
-  setPath(`people/${newId()}`, {name});
+  setPath(`people/${newId()}`, {name, by: me(), at: Date.now()});
+  logIt(`pridal(a) meno ${name}`);
   inp.value = ''; inp.focus();
 }
 document.getElementById('addBtn').addEventListener('click', e => { e.stopPropagation(); addPerson(); });
@@ -348,7 +378,8 @@ function openPicker(el, pid, eid){
     <div class="acts">
       ${eid ? '<button class="btn trash" data-x title="Zmazať túto účasť">🗑</button>' : ''}
       <button class="btn" data-save ${sel ? '' : 'disabled'}>${eid ? 'Uložiť zmeny' : 'Pridať'}</button>
-    </div>`;
+    </div>
+    ${eid && (old.by || old.eby) ? `<div class="hint" style="margin-top:10px">${old.by ? `Pridal(a): <b>${esc(old.by)}</b>${old.at ? ', ' + esc(fmtTime(old.at)) : ''}` : ''}${old.eby ? `<br>Naposledy upravil(a): <b>${esc(old.eby)}</b>${old.eat ? ', ' + esc(fmtTime(old.eat)) : ''}` : ''}</div>` : ''}`;
 
   // umiestnenie pod krúžok (aj v podrobnom prehľade)
   const box = el.closest('.overlay') || document.body;
@@ -370,8 +401,16 @@ function openPicker(el, pid, eid){
     if(!sel) return;
     const val = {t: sel, d: dInp.value || todayISO()};
     const n = nInp.value.trim(); if(n) val.n = n;
+    if(eid){
+      if(old.by) val.by = old.by; if(old.at) val.at = old.at;
+      const changed = old.t !== val.t || toISO(old.d) !== val.d || (old.n || '') !== (val.n || '');
+      if(!changed){ closePicker(); return; }
+      val.eby = me(); val.eat = Date.now();
+    } else { val.by = me(); val.at = Date.now(); }
     closePicker();
     setPath(`people/${pid}/entries/${eid || newId()}`, val);
+    const desc = `${TYPES[val.t].label} ${TYPES[val.t].name}${val.n ? ' – ' + val.n : ''}, ${fmtDate(val.d)}`;
+    logIt(eid ? `upravil(a) účasť – ${p.name}: ${desc}` : `pridal(a) účasť – ${p.name}: ${desc}`);
   };
   picker.addEventListener('click', ev => {
     const dot = ev.target.closest('[data-t]');
@@ -386,7 +425,8 @@ function openPicker(el, pid, eid){
     if(ev.target.closest('[data-save]')) return save();
     const x = ev.target.closest('[data-x]');
     if(x){
-      if(x.dataset.armed){ closePicker(); setPath(`people/${pid}/entries/${eid}`, null); }
+      if(x.dataset.armed){ closePicker(); setPath(`people/${pid}/entries/${eid}`, null);
+        logIt(`zmazal(a) účasť – ${p.name}: ${TYPES[old.t]?.label || ''} ${TYPES[old.t]?.name || ''}${old.n ? ' – ' + old.n : ''}, ${fmtDate(old.d)}`); }
       else { x.dataset.armed = '1'; x.textContent = 'Naozaj zmazať?'; }
     }
   });
@@ -395,7 +435,7 @@ function openPicker(el, pid, eid){
 
 /* ---------- podrobný prehľad ---------- */
 let view = 'people';
-const typeOn = {T:true, A:true, P:true, R:true};
+const typeOn = {T:true, A:true, P:true, V:true, R:true};
 const ov = document.getElementById('overlay');
 
 document.getElementById('filters').innerHTML = Object.keys(TYPES).map(k =>
@@ -411,9 +451,20 @@ function renderDetail(){
       <span class="dot ${e.t}">${TYPES[e.t].label}</span>
       <span class="date">${esc(fmtDate(e.d)) || '—'}</span>
       <span class="what">${showName ? `<b>${esc(p.name)}</b> · ` : ''}${e.n ? esc(e.n) : `<i>${esc(TYPES[e.t].name)} – bez popisu</i>`}</span>
+      ${e.by ? `<span class="by" title="${e.eby ? 'upravil(a) ' + esc(e.eby) : ''}">✍️ ${esc(e.by)}</span>` : ''}
     </div>`;
 
   let html = '';
+  document.getElementById('filters').style.display = view === 'log' ? 'none' : '';
+  if(view === 'log'){
+    const items = Object.entries(tree.log || {}).filter(([,l]) => l && l.txt)
+      .filter(([,l]) => !q || l.txt.toLowerCase().includes(q) || (l.by || '').toLowerCase().includes(q))
+      .sort((a,b) => a[0] < b[0] ? 1 : -1).slice(0, 300);
+    html = items.length ? `<div class="block">${items.map(([,l]) => `
+      <div class="logrow"><span class="when">${esc(fmtTime(l.at))}</span><span><b>${esc(l.by || '?')}</b> ${esc(l.txt)}</span></div>`).join('')}</div>`
+      : '<div class="empty">Zatiaľ žiadne zmeny. Odteraz sa sem zapíše, kto čo pridal alebo zmenil.</div>';
+    body.innerHTML = html; return;
+  }
   if(view === 'people'){
     html = people.map(p => {
       const nameHit = p.name.toLowerCase().includes(q);
@@ -478,7 +529,7 @@ function startRename(el){
   const finish = ok => {
     if(done) return; done = true; renaming = false;
     const v = inp.value.trim();
-    if(ok && v && v !== p.name) setPath(`people/${pid}/name`, v); else render();
+    if(ok && v && v !== p.name){ const oldName = p.name; setPath(`people/${pid}/name`, v); logIt(`premenoval(a) ${oldName} na ${v}`); } else render();
   };
   inp.addEventListener('keydown', ev => { if(ev.key === 'Enter') finish(true); if(ev.key === 'Escape') finish(false); });
   inp.addEventListener('blur', () => finish(true));
@@ -499,7 +550,7 @@ document.addEventListener('click', e => {
   closePicker();
   if(e.target === ov){ closeDetail(); return; }
   if(del){
-    if(del.dataset.armed){ setPath(`people/${del.dataset.del}`, null); }
+    if(del.dataset.armed){ const nm = tree.people?.[del.dataset.del]?.name || ''; setPath(`people/${del.dataset.del}`, null); logIt(`odstránil(a) ${nm} aj s jeho/jej účasťami`); }
     else { disarm(); del.dataset.armed = '1'; del.textContent = 'Zmazať?'; del.classList.add('armed'); }
     return;
   }
@@ -558,6 +609,38 @@ try {
   ch.postMessage('hello');
 } catch(e) {}
 
+/* ---------- kto som ---------- */
+const ME_KEY = 'dochadzka-moje-meno';
+let myName = '';
+try { myName = localStorage.getItem(ME_KEY) || ''; } catch(e) {}
+function me(){ return myName || '?'; }
+function askName(first){
+  const m = document.getElementById('nameModal');
+  const inp = document.getElementById('myNameInput');
+  inp.value = myName;
+  document.getElementById('nameCancel').hidden = first;
+  m.hidden = false; setTimeout(() => inp.focus(), 50);
+}
+function saveName(){
+  const inp = document.getElementById('myNameInput');
+  const v = inp.value.trim();
+  if(!v){ inp.focus(); inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 400); return; }
+  myName = v;
+  try { localStorage.setItem(ME_KEY, v); } catch(e) {}
+  document.getElementById('nameModal').hidden = true;
+}
+document.getElementById('nameOk').onclick = saveName;
+document.getElementById('myNameInput').addEventListener('keydown', e => { if(e.key === 'Enter') saveName(); });
+document.getElementById('nameCancel').onclick = () => { document.getElementById('nameModal').hidden = true; };
+
+function fmtTime(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  return `${d.getDate()}. ${d.getMonth()+1}. ${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function logIt(txt){ setPath(`log/${newId()}`, {by: me(), at: Date.now(), txt}); }
+
+if(!myName) askName(true);
 render();
 connect();
 </script>
