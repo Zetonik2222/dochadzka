@@ -181,6 +181,7 @@
     <input type="file" id="importFile" accept=".json" hidden>
     <button class="btn small" id="installBtn" hidden>📲 Nainštalovať appku</button>
   </div>
+  <div style="text-align:center;color:#fff;opacity:.7;font-size:12px;margin-top:14px">verzia 14. 11. 2026</div>
   <div class="dup" id="dupBanner" hidden>Appka je už otvorená v inej karte. Túto kartu môžeš zavrieť 🙂</div>
 </div>
 
@@ -304,12 +305,21 @@ function fmtDate(d){
   return `${+dd}. ${+m}. ${y}`;
 }
 
+// čas pridania: uložený "at", inak sa vyčíta z ID záznamu
+function keyTime(k){ const t = parseInt(String(k).slice(0,9), 36); return isNaN(t) ? 0 : t; }
+
 function getPeople(){
-  return Object.entries(tree.people || {}).filter(([,p]) => p && p.name).map(([id,p]) => ({
-    id, name: p.name,
-    entries: Object.entries(p.entries || {}).filter(([,e]) => e && TYPES[e.t])
-      .sort((a,b) => a[0] < b[0] ? -1 : 1).map(([eid,e]) => ({id:eid, t:e.t, d:toISO(e.d), n:(e.n || '').trim(), by:e.by || '', eby:e.eby || ''}))
-  })).sort((a,b) => b.entries.length - a.entries.length || a.name.localeCompare(b.name,'sk'));
+  return Object.entries(tree.people || {}).filter(([,p]) => p && p.name).map(([id,p]) => {
+    const entries = Object.entries(p.entries || {}).filter(([,e]) => e && TYPES[e.t])
+      .map(([eid,e]) => ({id:eid, t:e.t, d:toISO(e.d), n:(e.n || '').trim(), by:e.by || '', eby:e.eby || '', added: Number(e.at) || keyTime(eid)}))
+      .sort((a,b) => a.added - b.added || (a.id < b.id ? -1 : 1));
+    // kedy človek dosiahol svoj aktuálny počet (= kedy pribudla jeho posledná účasť)
+    const reached = entries.length ? entries[entries.length-1].added : (Number(p.at) || keyTime(id));
+    return {id, name: p.name, entries, reached};
+  }).sort((a,b) =>
+    b.entries.length - a.entries.length ||   // viac účastí = vyššie
+    a.reached - b.reached ||                 // rovnaký počet: kto ho má dlhšie, je vyššie
+    a.name.localeCompare(b.name,'sk'));
 }
 
 function entryTitle(e){ return [TYPES[e.t].name, e.n, fmtDate(e.d)].filter(Boolean).join(' – '); }
